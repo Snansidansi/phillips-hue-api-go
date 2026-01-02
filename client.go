@@ -1,6 +1,7 @@
 package hueapi
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,41 +10,54 @@ import (
 )
 
 type headerTransport struct {
-	base   http.RoundTripper
-	apiKey string
+	base    http.RoundTripper
+	apiKey  string
+	logging bool
 }
 
 func (t *headerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	newReq := req.Clone(req.Context())
-	req.Header.Add("hue-application-key", t.apiKey)
-	fmt.Printf("[HUE] %s %s\n", newReq.Method, newReq.URL.String())
-	return t.base.RoundTrip(req)
+	newReq.Header.Add("hue-application-key", t.apiKey)
+
+	if t.logging {
+		fmt.Printf("[HUE] %s %s\n", newReq.Method, newReq.URL.String())
+	}
+
+	return t.base.RoundTrip(newReq)
 }
 
 type Client struct {
-	IPAdress   string
+	Bridge     models.Bridge
 	HTTPClient *http.Client
 
-	Lights *LightService
+	Lights   *LightService
+	Register *RegisterService
 }
 
 // Uses http.DefaultCLient when httpClient is nil.
-func NewClient(ipAdress, apiKey string, httpClient *http.Client) *Client {
+func NewClient(bridge models.Bridge, apiKey string, httpClient *http.Client, logging bool) *Client {
 	if httpClient == nil {
-		httpClient = http.DefaultClient
+		httpClient = &http.Client{}
+	}
+
+	customTransport := http.DefaultTransport.(*http.Transport).Clone()
+	customTransport.TLSClientConfig = &tls.Config{
+		InsecureSkipVerify: true,
 	}
 
 	httpClient.Transport = &headerTransport{
-		base:   http.DefaultTransport,
-		apiKey: apiKey,
+		base:    customTransport,
+		apiKey:  apiKey,
+		logging: logging,
 	}
 
 	c := &Client{
-		IPAdress:   ipAdress,
+		Bridge:     bridge,
 		HTTPClient: httpClient,
 	}
 
 	c.Lights = &LightService{client: c}
+	c.Register = &RegisterService{client: c}
 
 	return c
 }
