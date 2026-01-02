@@ -83,3 +83,7 @@ func DiscoverBridges(httpClient *http.Client) ([]models.Bridge, error) {
 
 	return foundBridges, nil
 }
+
+func (c *Client) CreateURL(specificURL string) string {
+	return fmt.Sprintf("https://%s/clip/v2/%s", c.Bridge.IPAdress, specificURL)
+}

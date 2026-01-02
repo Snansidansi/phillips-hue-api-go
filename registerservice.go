@@ -83,7 +83,7 @@ func RegisterBridge(
 	}
 
 	if respData[0].Error != nil {
-		hueError := HueError{
+		hueError := models.HueError{
 			Type:        respData[0].Error.Type,
 			Description: respData[0].Error.Description,
 		}

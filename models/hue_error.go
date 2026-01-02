@@ -1,9 +1,10 @@
-package hueapi
+package models
 
 import "fmt"
 
 type HueError struct {
 	Type        int    `json:"type"`
+	Address     string `json:"address"`
 	Description string `json:"description"`
 }
 
