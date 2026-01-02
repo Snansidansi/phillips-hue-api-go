@@ -2,14 +2,26 @@ package hueapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/snansidansi/hueapi/models"
 )
 
+type headerTransport struct {
+	base   http.RoundTripper
+	apiKey string
+}
+
+func (t *headerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	newReq := req.Clone(req.Context())
+	req.Header.Add("hue-application-key", t.apiKey)
+	fmt.Printf("[HUE] %s %s\n", newReq.Method, newReq.URL.String())
+	return t.base.RoundTrip(req)
+}
+
 type Client struct {
 	IPAdress   string
-	APIKey     string
 	HTTPClient *http.Client
 
 	Lights *LightService
@@ -21,9 +33,13 @@ func NewClient(ipAdress, apiKey string, httpClient *http.Client) *Client {
 		httpClient = http.DefaultClient
 	}
 
+	httpClient.Transport = &headerTransport{
+		base:   http.DefaultTransport,
+		apiKey: apiKey,
+	}
+
 	c := &Client{
 		IPAdress:   ipAdress,
-		APIKey:     apiKey,
 		HTTPClient: httpClient,
 	}
 
