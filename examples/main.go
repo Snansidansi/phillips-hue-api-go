@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/snansidansi/hueapi"
+	"github.com/snansidansi/hueapi/builders"
 	"github.com/snansidansi/hueapi/models"
 )
 
@@ -115,13 +117,15 @@ func getLightByID(client *hueapi.Client, id string) (models.Light, error) {
 
 func SetLight(client *hueapi.Client, light *models.Light) {
 	lightEnabled := !light.On.On
+	brightness := rand.Intn(100) + 1
 
-	update := models.LightPut{
-		On: &models.OnPut{
-			On: &lightEnabled,
-		},
-	}
-	hueResp, err := client.Lights.SetLightState("fdjs", update)
+	lightBuilder := builders.NewLightBuilder()
+	lightBuilder.SetOnOff(lightEnabled)
+	lightBuilder.Brightness(float64(brightness))
+	update := lightBuilder.Build()
+
+	hueResp, err := client.Lights.SetLightState(light.ID, update)
+
 	fmt.Print("Hue error: ")
 	printStructFormatted(hueResp)
 	fmt.Printf("Error: %v\n", err)
