@@ -30,8 +30,32 @@ func main() {
 	apiKey := os.Getenv("HUE_BRIDGE_USERNAME")
 	client := hueapi.NewClient(bridge, apiKey, nil, true)
 
-	firstLightID := getLights(client)
-	getLightByID(client, firstLightID)
+	lights, err := getLights(client)
+	if err != nil {
+		fmt.Printf("Error getting lights: %v\n", err)
+		os.Exit(1)
+	}
+	// fmt.Println("All Lights:")
+	// printStructFormatted(lights)
+
+	firstLightID := ""
+	if len(lights) > 0 {
+		firstLightID = lights[0].ID
+	} else {
+		fmt.Println("No lights found.")
+		os.Exit(0)
+	}
+
+	light, err := getLightByID(client, firstLightID)
+	if err != nil {
+		fmt.Printf("Error getting light by ID: %v\n", err)
+		os.Exit(1)
+	}
+	// fmt.Printf("Light by ID %s:\n", firstLightID)
+	// printStructFormatted(light)
+
+	SetLight(client, &light)
+
 }
 
 func discoverBridges() {
@@ -55,21 +79,52 @@ func registerInBridge(bridge *models.Bridge) {
 	}
 }
 
-func getLights(client *hueapi.Client) (id string) {
-	lights, hueError, err := client.Lights.GetAllLights()
-	// printStructFormatted(lights)
-	fmt.Print("Hue error: ")
-	printStructFormatted(hueError)
-	fmt.Printf("Normal error: %v\n", err)
+func getLights(client *hueapi.Client) ([]models.Light, error) {
+	hueResp, err := client.Lights.GetAllLights()
 
-	return lights[0].ID
+	if err != nil {
+		return nil, err
+	}
+
+	if len(hueResp.Errors) > 0 {
+		return nil, fmt.Errorf("Hue API error: %+v", hueResp.Errors)
+	}
+
+	return hueResp.Data, nil
 }
 
-func getLightByID(client *hueapi.Client, id string) {
-	light, hueError, err := client.Lights.GetLightByID(id)
-	printStructFormatted(light)
-	fmt.Printf("Hue error: %v\n", hueError)
-	fmt.Printf("Normal error: %v\n", err)
+func getLightByID(client *hueapi.Client, id string) (models.Light, error) {
+	hueResp, err := client.Lights.GetLightByID(id)
+
+	if err != nil {
+		return models.Light{}, err
+	}
+
+	if len(hueResp.Errors) > 0 {
+		return models.Light{}, fmt.Errorf("Hue API error: %+v", hueResp.Errors)
+	}
+
+	if len(hueResp.Data) > 0 {
+		return hueResp.Data[0], nil
+	}
+
+	fmt.Println("Fatal error no example lights found")
+	os.Exit(1)
+	return models.Light{}, nil
+}
+
+func SetLight(client *hueapi.Client, light *models.Light) {
+	lightEnabled := !light.On.On
+
+	update := models.LightPut{
+		On: &models.OnPut{
+			On: &lightEnabled,
+		},
+	}
+	hueResp, err := client.Lights.SetLightState("fdjs", update)
+	fmt.Print("Hue error: ")
+	printStructFormatted(hueResp)
+	fmt.Printf("Error: %v\n", err)
 }
 
 func printStructFormatted(data any) {
