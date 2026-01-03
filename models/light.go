@@ -223,11 +223,6 @@ type LightPut struct {
 	ContentConfiguration  *ContentConfigurationPut  `json:"content_configuration,omitempty"`
 }
 
-type MetadataPut struct {
-	Name      *string `json:"name,omitempty"`
-	Archetype *string `json:"archetype,omitempty"`
-}
-
 type IdentifyPut struct {
 	Action   *string `json:"action,omitempty"`
 	Duration *int64  `json:"duration,omitempty"`
