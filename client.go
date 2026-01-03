@@ -31,6 +31,7 @@ type Client struct {
 	HTTPClient *http.Client
 
 	Lights   *LightService
+	Rooms    *RoomService
 	Register *RegisterService
 }
 
@@ -57,6 +58,7 @@ func NewClient(bridge models.Bridge, apiKey string, httpClient *http.Client, log
 	}
 
 	c.Lights = &LightService{client: c}
+	c.Rooms = &RoomService{client: c}
 	c.Register = &RegisterService{client: c}
 
 	return c
