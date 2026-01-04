@@ -16,12 +16,7 @@ type RoomService struct {
 func (s *RoomService) GetAllRooms() (*models.HueResponse[models.Room], error) {
 	url := s.client.CreateURL("resource/room")
 
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := s.client.HTTPClient.Do(req)
+	resp, err := s.client.HTTPClient.Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -40,12 +35,7 @@ func (s *RoomService) GetAllRooms() (*models.HueResponse[models.Room], error) {
 func (s *RoomService) GetRoomByID(id string) (*models.HueResponse[models.Room], error) {
 	url := s.client.CreateURL("resource/room/" + id)
 
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := s.client.HTTPClient.Do(req)
+	resp, err := s.client.HTTPClient.Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -61,10 +51,10 @@ func (s *RoomService) GetRoomByID(id string) (*models.HueResponse[models.Room], 
 	return &hueResp, nil
 }
 
-func (s *RoomService) UpdateRoom(id string, room models.RoomPut) (*models.HueActionResponse, error) {
+func (s *RoomService) UpdateRoom(id string, roomUpdate models.RoomEdit) (*models.HueActionResponse, error) {
 	url := s.client.CreateURL("resource/room/" + id)
 
-	jsonData, err := json.Marshal(room)
+	jsonData, err := json.Marshal(roomUpdate)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +81,7 @@ func (s *RoomService) UpdateRoom(id string, room models.RoomPut) (*models.HueAct
 	return &hueResp, nil
 }
 
-func (s *RoomService) CreateRoom(room models.RoomPost) (*models.HueActionResponse, error) {
+func (s *RoomService) CreateRoom(room models.RoomEdit) (*models.HueActionResponse, error) {
 	url := s.client.CreateURL("resource/room")
 
 	jsonData, err := json.Marshal(room)
@@ -104,6 +94,30 @@ func (s *RoomService) CreateRoom(room models.RoomPost) (*models.HueActionRespons
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := s.client.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var hueResp models.HueActionResponse
+	hueResp.StatusCode = resp.StatusCode
+
+	if err := json.NewDecoder(resp.Body).Decode(&hueResp); err != nil {
+		return &hueResp, fmt.Errorf("decoding failed (status %d): %w", resp.StatusCode, err)
+	}
+
+	return &hueResp, nil
+}
+
+func (s *RoomService) DeleteRoom(id string) (*models.HueActionResponse, error) {
+	url := s.client.CreateURL("resource/room/" + id)
+
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := s.client.HTTPClient.Do(req)
 	if err != nil {

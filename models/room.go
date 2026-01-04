@@ -1,12 +1,6 @@
 package models
 
-type RoomPost struct {
-	Children *[]ResourceIdentifier `json:"children,omitempty"`
-	Metadata *MetadataPut          `json:"metadata,omitempty"`
-	Type     string                `json:"type,omitempty"`
-}
-
-type RoomPut struct {
+type RoomEdit struct {
 	Children *[]ResourceIdentifier `json:"children,omitempty"`
 	Metadata *MetadataPut          `json:"metadata,omitempty"`
 }
