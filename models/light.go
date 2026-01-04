@@ -8,8 +8,6 @@ type Light struct {
 	ID        string `json:"id"`
 	IDV1      string `json:"id_v1,omitempty"`
 	Owner     Owner  `json:"owner"`
-	RID       string `json:"rid"`
-	RType     string `json:"rtype"`
 	Type      string `json:"type"`
 	ServiceID int    `json:"service_id"`
 
