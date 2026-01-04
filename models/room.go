@@ -12,19 +12,13 @@ type RoomPut struct {
 }
 
 type Room struct {
-	ID       string `json:"id"`
-	IDV1     string `json:"id_v1"`
-	Children []struct {
-		Rid   string `json:"rid"`
-		Rtype string `json:"rtype"`
-	} `json:"children"`
+	ID       string               `json:"id"`
+	IDV1     string               `json:"id_v1"`
+	Children []ResourceIdentifier `json:"children"`
 	Metadata struct {
 		Name      string `json:"name"`
 		Archetype string `json:"archetype"`
 	} `json:"metadata"`
-	Services []struct {
-		Rid   string `json:"rid"`
-		Rtype string `json:"rtype"`
-	} `json:"services"`
-	Type string `json:"type"`
+	Services []ResourceIdentifier `json:"services"`
+	Type     string               `json:"type"`
 }
