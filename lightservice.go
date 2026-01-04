@@ -17,12 +17,7 @@ type LightService struct {
 func (l *LightService) GetAllLights() (*models.HueResponse[models.Light], error) {
 	url := l.client.CreateURL("resource/light")
 
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := l.client.HTTPClient.Do(req)
+	resp, err := l.client.HTTPClient.Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -41,12 +36,7 @@ func (l *LightService) GetAllLights() (*models.HueResponse[models.Light], error)
 func (l *LightService) GetLightByID(id string) (*models.HueResponse[models.Light], error) {
 	url := l.client.CreateURL("resource/light/" + id)
 
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := l.client.HTTPClient.Do(req)
+	resp, err := l.client.HTTPClient.Get(url)
 	if err != nil {
 		return nil, err
 	}
